@@ -10,6 +10,7 @@ from keras.layers import Input, Dense
 from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras import regularizers
 
+from generator import train_generator, val_generator
 
 # -------------------- Preprocessing ----------------------
 
@@ -39,9 +40,7 @@ def codes_to_binary(iata1, iata2):
 
 binary_row = []
 for index, row in data.iterrows():
-    schd_from = row['schd_from']
-    schd_to = row['schd_to']
-    binary_row.append(codes_to_binary(schd_from, schd_to))
+    binary_row.append(codes_to_binary(row['schd_from'], row['schd_to']))
 del index, row
 
 scaler = StandardScaler()
@@ -55,7 +54,7 @@ X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
 
 # -------------------- AI ----------------------
 
-input_dim = X_train.shape[1]
+input_dim = 9
 encoding_dim = 25
 
 input_layer = Input(shape=(input_dim, ))
@@ -72,10 +71,11 @@ batch_size = 32
 
 autoencoder.compile(optimizer='adam', 
                     loss='mean_squared_error', 
-                    metrics=['accuracy'])
+                    #metrics=['accuracy']
+                    )
 
 #checkpointer = ModelCheckpoint(filepath="model.h5",
-#                               verbose=0,
+#                               verbose=1,
 #                               save_best_only=True)
 
 tensorboard = TensorBoard(log_dir='./logs',
@@ -83,14 +83,14 @@ tensorboard = TensorBoard(log_dir='./logs',
                           write_graph=True,
                           write_images=True)
 
-history = autoencoder.fit(X_train, X_train,
+history = autoencoder.fit_generator(train_generator(1),
                     epochs=nb_epoch,
-                    batch_size=batch_size,
-                    shuffle=True,
-                    #validation_data=(X_test, X_test),
+                    steps_per_epoch=100000,
+                    validation_data=val_generator(1),
+                    validation_steps=50000,
                     verbose=1,
                     callbacks=[tensorboard]).history
 
 
 # Run the following in the terminal to start TensorBoard:
-# tensorboard --logdir=C:\Users\Simon\Downloads\secure.flightradar24.com\scripts\logs
+# tensorboard --logdir=path-to-logs-directory
