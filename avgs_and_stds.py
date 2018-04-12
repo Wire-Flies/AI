@@ -1,5 +1,3 @@
-import numpy as np
-
 
 """ Approximate averages and standard deviations for the data """
 
@@ -22,4 +20,3 @@ stds = [3.66620172009337,
         24.4142390604775,
         20.026868171039,
         22.8483284459873]
-
