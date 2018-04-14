@@ -16,16 +16,13 @@ from generator1 import train_generator1, val_generator1
 
 # -------------------- AI ----------------------
 
-#input_dim = 9
-#encoding_dim = 7
-
 input_layer = Input(shape=(9, ))
-encoder = Dense(7, activation="tanh", kernel_initializer='uniform')(input_layer) 
-                #activity_regularizer=regularizers.l1(10e-5))(input_layer)
-encoder = Dense(5, activation="tanh", kernel_initializer='uniform')(encoder)
-decoder = Dense(7, activation="tanh", kernel_initializer='uniform')(encoder)
-decoder = Dense(9, kernel_initializer='uniform')(decoder)
+encoder = Dense(6, activation="tanh", activity_regularizer=regularizers.l1(10e-2))(input_layer)
+middle = Dense(3, activation="tanh")(encoder)
+decoder = Dense(6, activation="tanh")(middle)
+decoder = Dense(9)(decoder)
 autoencoder = Model(inputs=input_layer, outputs=decoder)
+#encoder = Model(inputs=input_layer, outputs=middle)
 
 
 nb_epoch = 100
@@ -37,7 +34,13 @@ autoencoder.compile(optimizer=optimizer,
                     #metrics=['accuracy']
                     )
 
-checkpointer = ModelCheckpoint(filepath="model.h5",
+
+# model2: 9 8 7 6 4 6 7 8 9, max: 1.02, min: 0.00062
+# model3: 9 8 7 6 3 6 7 8 9, max: 1.4, min: ?, avg: 0.07
+# model4: 9 8 7 6 - 6 7 8 9, max: , min: , avg: 
+# model5: 9 8 7 6 5 6 7 8 9, max: 1.02, min: 0.00078, avg: 0.048
+# model6: 9, 7 (AR), 5, 7, 9 (accidentally overwrote model 5)
+checkpointer = ModelCheckpoint(filepath="./models/model7.h5",
                                verbose=1,
                                save_best_only=True)
 
@@ -48,10 +51,11 @@ tensorboard = TensorBoard(log_dir='./logs',
 
 history = autoencoder.fit_generator(train_generator1(batch_size),
                     epochs=nb_epoch,
-                    steps_per_epoch=10000,
+                    steps_per_epoch=7500,
                     validation_data=val_generator1(batch_size),
-                    validation_steps=1000,
+                    validation_steps=5000,
                     verbose=1,
+                    #initial_epoch=0,
                     #max_queue_size=1,
                     #workers=3, 
                     #use_multiprocessing=False,

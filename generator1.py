@@ -1,6 +1,3 @@
-import psycopg2
-import random
-import math
 import numpy as np
 
 from generator2 import train_generator2, val_generator2
